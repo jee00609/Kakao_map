@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.util.Log;
@@ -15,6 +16,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import net.daum.mf.map.api.MapCircle;
+import net.daum.mf.map.api.MapPOIItem;
 import net.daum.mf.map.api.MapPoint;
 import net.daum.mf.map.api.MapReverseGeoCoder;
 import net.daum.mf.map.api.MapView;
@@ -30,7 +33,7 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
     private static final int GPS_ENABLE_REQUEST_CODE = 2001;
     private static final int PERMISSIONS_REQUEST_CODE = 100;
     String[] REQUIRED_PERMISSIONS  = {Manifest.permission.ACCESS_FINE_LOCATION};
-
+    private static final int radius = 150;
 
 
 
@@ -43,6 +46,33 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
         mMapView = (MapView) findViewById(R.id.map_view);
         //mMapView.setDaumMapApiKey(MapApiConst.DAUM_MAPS_ANDROID_APP_API_KEY);
         mMapView.setCurrentLocationEventListener(this);
+
+//        mMapView.setShowCurrentLocationMarker(true);
+//        mMapView.setCurrentLocationRadius(radius);
+//        mMapView.setCurrentLocationRadiusStrokeColor(android.graphics.Color.argb(128, 255, 0, 0));
+//        mMapView.setCurrentLocationRadiusFillColor(android.graphics.Color.argb(128, 0, 255, 0));
+
+        mMapView.setShowCurrentLocationMarker(true);
+
+        /*로케이션 마커를 만들어 현재 자신이 어디를 향하고 있는지 시각적으로 표현*/
+        MapPOIItem.ImageOffset trackingImageAnchorPointOffset = new MapPOIItem.ImageOffset(28, 28); // 좌하단(0,0) 기준 앵커포인트 오프셋
+        MapPOIItem.ImageOffset directionImageAnchorPointOffset = new MapPOIItem.ImageOffset(65, 65);
+        MapPOIItem.ImageOffset offImageAnchorPointOffset = new MapPOIItem.ImageOffset(15, 15);
+        mMapView.setCustomCurrentLocationMarkerTrackingImage(R.drawable.custom_arrow_map_present_tracking, trackingImageAnchorPointOffset);
+        mMapView.setCustomCurrentLocationMarkerDirectionImage(R.drawable.custom_map_present_direction, directionImageAnchorPointOffset);
+        mMapView.setCustomCurrentLocationMarkerImage(R.drawable.custom_map_present, offImageAnchorPointOffset);
+
+        /*이건 직접 좌표를 줘서 원을 그리는 방식으로 우리코드와는 맞지 않다.*/
+        /*onCurrentLocationUpdate 함수 내에 현재 위치에 맞게 원을 그리는 방식으로 고침*/
+//        MapCircle circle1 = new MapCircle(
+//                MapPoint.mapPointWithGeoCoord(37.731697, 126.720963), // center
+//                500, // radius
+//                Color.argb(128, 255, 0, 0), // strokeColor
+//                Color.argb(128, 0, 255, 0) // fillColor
+//        );
+//
+//        circle1.setTag(1234);
+//        mMapView.addCircle(circle1);
 
         if (!checkLocationServicesStatus()) {
 
@@ -64,6 +94,11 @@ public class MainActivity extends AppCompatActivity implements MapView.CurrentLo
     @Override
     public void onCurrentLocationUpdate(MapView mapView, MapPoint currentLocation, float accuracyInMeters) {
         MapPoint.GeoCoordinate mapPointGeo = currentLocation.getMapPointGeoCoord();
+
+        mMapView.setCurrentLocationRadius(radius);
+        mMapView.setCurrentLocationRadiusStrokeColor(android.graphics.Color.argb(128, 255, 0, 0));
+        mMapView.setCurrentLocationRadiusFillColor(android.graphics.Color.argb(128, 0, 255, 0));
+
         Log.i(LOG_TAG, String.format("MapView onCurrentLocationUpdate (%f,%f) accuracy (%f)", mapPointGeo.latitude, mapPointGeo.longitude, accuracyInMeters));
     }
 
